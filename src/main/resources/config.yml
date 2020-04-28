@@ -1,0 +1,4 @@
+cmdmsg: "/rpi list 查看所有
+         /rpi get {变量} 得到两个键值对物品
+         /rpi add key {变量}手持物品输入加入要替换物品
+         /rpi add value {变量}手持物品输入要替换成的物品"

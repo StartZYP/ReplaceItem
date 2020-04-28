@@ -1,0 +1,5 @@
+name: replaceitem
+main: com.ipedg.minecraft.replaceitem.main
+version: 1.0.0
+commands:
+  rpi:
