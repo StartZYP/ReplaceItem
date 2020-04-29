@@ -2,3 +2,10 @@ cmdmsg: "/rpi list 查看所有
          /rpi get {变量} 得到两个键值对物品
          /rpi add key {变量}手持物品输入加入要替换物品
          /rpi add value {变量}手持物品输入要替换成的物品"
+reloadmsg: "§e§l重载成功"
+NoNullHand: "不能空手"
+Nothis: "§e§l抱歉没有这个"
+MustOne: "数量必须是1"
+NoKey: "你还没设置key"
+ConfigOk: "设置成功"
+EndConfig: "fuck"

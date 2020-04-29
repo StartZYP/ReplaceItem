@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -24,6 +26,14 @@ import java.util.Set;
 public class main extends JavaPlugin implements Listener {
     public static Map<String, MapItemEntity> itemmap = new HashMap<>();
     public static String cmdmsg;
+    public static String reloadmsg;
+    public static String NoNullHand;
+    public static String MustOne;
+    public static String NoKey;
+    public static String Nothis;
+    public static String ConfigOk;
+    public static String EndConfig;
+
     public static Plugin plugin;
     public static MapItemEntity tmpitem =new MapItemEntity();
 
@@ -34,6 +44,7 @@ public class main extends JavaPlugin implements Listener {
         if (!config.exists()) {
             getConfig().options().copyDefaults(true);
         }
+        ConfigReloads();
         saveDefaultConfig();
         Bukkit.getServer().getPluginManager().registerEvents(this,this);
         super.onEnable();
@@ -43,6 +54,13 @@ public class main extends JavaPlugin implements Listener {
     private void ConfigReloads(){
         reloadConfig();
         cmdmsg = getConfig().getString("cmdmsg");
+        reloadmsg = getConfig().getString("reloadmsg");
+        NoNullHand = getConfig().getString("NoNullHand");
+        Nothis = getConfig().getString("Nothis");
+        MustOne = getConfig().getString("MustOne");
+        NoKey = getConfig().getString("NoKey");
+        ConfigOk = getConfig().getString("ConfigOk");
+        EndConfig = getConfig().getString("EndConfig");
         Set<File> files = Utils.getFiles();
         Utils.InitItem(files);
     }
@@ -58,7 +76,7 @@ public class main extends JavaPlugin implements Listener {
         }else if (args.length==1){
             if (args[0].equals("reload")){
                 ConfigReloads();
-                sender.sendMessage("重载成功");
+                sender.sendMessage(reloadmsg);
             }else if (args[0].equalsIgnoreCase("list")){
                 Set<String> strings = itemmap.keySet();
                 for (String keys:strings){
@@ -68,7 +86,7 @@ public class main extends JavaPlugin implements Listener {
         }else if (args.length==2){
             if (args[0].equalsIgnoreCase("get")){
                 if (itemmap.containsKey(args[1])){
-                    MapItemEntity mapItemEntity = itemmap.get(args[0]);
+                    MapItemEntity mapItemEntity = itemmap.get(args[1]);
                     String keyItem = mapItemEntity.getKeyItem();
                     String valueItem = mapItemEntity.getValueItem();
                     ItemStack itemStack = Utils.getItemStack(keyItem);
@@ -76,7 +94,7 @@ public class main extends JavaPlugin implements Listener {
                     p.getInventory().addItem(itemStack);
                     p.getInventory().addItem(itemStack1);
                 }else {
-                    sender.sendMessage("抱歉没有这个");
+                    sender.sendMessage(Nothis);
                 }
             }
 
@@ -84,45 +102,45 @@ public class main extends JavaPlugin implements Listener {
             if (args[0].equals("add")&&args[1].equals("key")){
                 ItemStack itemInHand = p.getItemInHand();
                 if (itemInHand==null){
-                    p.sendMessage("不能空手");
+                    p.sendMessage(NoNullHand);
                     return false;
                 }
                 if (itemInHand.getType()== Material.AIR){
-                    p.sendMessage("不能空手");
+                    p.sendMessage(NoNullHand);
                     return false;
                 }
                 if (itemInHand.getType()== Material.AIR){
                     return false;
                 }
                 if (itemInHand.getAmount()!=1){
-                    p.sendMessage("数量必须为1");
+                    p.sendMessage(MustOne);
                     return false;
                 }
                 tmpitem.setKeyItem(Utils.toData(itemInHand));
-                p.sendMessage("配置key成功");
+                p.sendMessage(ConfigOk);
             }else if (args[0].equals("add")&&args[1].equals("value")){
                 ItemStack itemInHand = p.getItemInHand();
                 if (itemInHand==null){
-                    p.sendMessage("不能空手");
+                    p.sendMessage(NoNullHand);
                     return false;
                 }
                 if (itemInHand.getType()== Material.AIR){
-                    p.sendMessage("不能空手");
+                    p.sendMessage(NoNullHand);
                     return false;
                 }
                 if (itemInHand.getAmount()!=1){
-                    p.sendMessage("数量必须为1");
+                    p.sendMessage(MustOne);
                     return false;
                 }
                 if (tmpitem.getKeyItem().equals("")){
-                    p.sendMessage("您还没设置key");
+                    p.sendMessage(NoKey);
                     return false;
                 }
                 tmpitem.setValueItem(Utils.toData(itemInHand));
                 itemmap.put(args[2],tmpitem);
                 Utils.CreateItem(args[2],tmpitem.getKeyItem()+"startzyp"+tmpitem.getValueItem());
                 tmpitem = new MapItemEntity();
-                p.sendMessage("配置value成功-已存储为"+args[2]);
+                p.sendMessage(ConfigOk+args[2]);
             }
         }
         return super.onCommand(sender, command, label, args);
@@ -148,13 +166,14 @@ public class main extends JavaPlugin implements Listener {
             String data = Utils.toData(currentItem);
             MapItemEntity mapItemEntity = CheackItem(data);
             if (mapItemEntity!=null){
-                event.setCancelled(true);
                 String keyItem = mapItemEntity.getKeyItem();
                 if (data.equals(keyItem)){
                     ItemStack itemStack = Utils.getItemStack(mapItemEntity.getValueItem());
                     itemStack.setAmount(amount);
                     event.setCurrentItem(itemStack);
                 }
+            }else {
+                currentItem.setAmount(amount);
             }
         }
     }
@@ -175,17 +194,51 @@ public class main extends JavaPlugin implements Listener {
                     itemStack1.setAmount(amount);
                     event.getItem().setItemStack(itemStack1);
                 }
+            }else {
+                itemStack.setAmount(amount);
             }
         }
     }
 
-//    @EventHandler
-//    public void PlayerChangeItem(InventoryOpenEvent event){
-//        Inventory inventory = event.getInventory();
-//        int size = inventory.getSize()-1;
-//        for (int a=0;a<=size;a++){
-//
-//        }
-//
-//    }
+    @EventHandler
+    public void PlayerChangeItem(PlayerItemHeldEvent event){
+        ItemStack itemInMainHand = event.getPlayer().getInventory().getItemInMainHand();
+        if (itemInMainHand!=null&&itemInMainHand.getType()!= Material.AIR){
+            int amount = itemInMainHand.getAmount();
+            itemInMainHand.setAmount(1);
+            String data = Utils.toData(itemInMainHand);
+            MapItemEntity mapItemEntity = CheackItem(data);
+            if (mapItemEntity!=null){
+                String keyItem = mapItemEntity.getKeyItem();
+                if (data.equals(keyItem)){
+                    ItemStack itemStack1 = Utils.getItemStack(mapItemEntity.getValueItem());
+                    itemStack1.setAmount(amount);
+                    event.getPlayer().getInventory().setItemInMainHand(itemStack1);
+                }
+            }else {
+                itemInMainHand.setAmount(amount);
+            }
+        }
+    }
+
+    @EventHandler
+    public void PlayerInteract(PlayerInteractEvent event){
+        ItemStack item = event.getItem();
+        if (item!=null&&item.getType()!= Material.AIR){
+            int amount = item.getAmount();
+            item.setAmount(1);
+            String data = Utils.toData(item);
+            MapItemEntity mapItemEntity = CheackItem(data);
+            if (mapItemEntity!=null){
+                String keyItem = mapItemEntity.getKeyItem();
+                if (data.equals(keyItem)){
+                    ItemStack itemStack1 = Utils.getItemStack(mapItemEntity.getValueItem());
+                    itemStack1.setAmount(amount);
+                    event.getPlayer().getInventory().setItemInMainHand(itemStack1);
+                }
+            }else {
+                item.setAmount(amount);
+            }
+        }
+    }
 }

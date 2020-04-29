@@ -80,7 +80,7 @@ public class Utils {
         Set<File> tmpfile = new HashSet<>();
         File[] files = file.listFiles();
         for (File filepath:files){
-            if(!file.isDirectory()&&filepath.getAbsolutePath().toLowerCase().endsWith(".fuck")){
+            if(filepath.getAbsolutePath().toLowerCase().endsWith(main.EndConfig)){
                 tmpfile.add(filepath);
             }
         }
